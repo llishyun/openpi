@@ -15,8 +15,25 @@ GIT_LFS_SKIP_SMUDGE=1 uv sync
 echo "== 2/4 pi05_base weights -> ~/.cache/openpi (≈11 GB)"
 uv run python -c "import openpi.shared.download as d; print(d.maybe_download('gs://openpi-assets/checkpoints/pi05_base/params'))"
 
-echo "== 3/4 dataset ${REPO_ID} -> ${HF_LEROBOT_HOME}/${REPO_ID} (≈540 MB)"
-uv run huggingface-cli download --repo-type dataset "${REPO_ID}" --local-dir "${HF_LEROBOT_HOME}/${REPO_ID}"
+echo "== 3/4 datasets -> ${HF_LEROBOT_HOME}/lithyeon/<name>"
+# Datasets already copied to the cluster (e.g. franka_pnp_big100_distract, which is not on the Hub):
+#   LOCAL_DATA_DIR=/path/to/data bash scripts/slurm/prepare.sh
+# every <LOCAL_DATA_DIR>/<name>/meta/info.json gets a symlink at ${HF_LEROBOT_HOME}/lithyeon/<name>.
+mkdir -p "${HF_LEROBOT_HOME}/lithyeon"
+if [ -n "${LOCAL_DATA_DIR:-}" ]; then
+    for d in "${LOCAL_DATA_DIR}"/*/; do
+        d=${d%/}; name=$(basename "$d")
+        [ -f "$d/meta/info.json" ] || { echo "skip $d (no meta/info.json)"; continue; }
+        ln -sfn "$(readlink -f "$d")" "${HF_LEROBOT_HOME}/lithyeon/${name}"
+        echo "linked lithyeon/${name} -> $d"
+    done
+fi
+if [ -f "${HF_LEROBOT_HOME}/${REPO_ID}/meta/info.json" ]; then
+    echo "${REPO_ID} already present, skipping download"
+else
+    echo "downloading ${REPO_ID} from the Hub (≈540 MB)"
+    uv run huggingface-cli download --repo-type dataset "${REPO_ID}" --local-dir "${HF_LEROBOT_HOME}/${REPO_ID}"
+fi
 
 echo "== 4/4 sanity check (config + norm stats + one batch on CPU)"
 JAX_PLATFORMS=cpu uv run python - <<'PY'
