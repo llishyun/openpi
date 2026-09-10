@@ -19,6 +19,7 @@ import openpi.models.pi0_fast as pi0_fast
 import openpi.models.tokenizer as _tokenizer
 import openpi.policies.aloha_policy as aloha_policy
 import openpi.policies.droid_policy as droid_policy
+import openpi.policies.franka_pnp_policy as franka_pnp_policy
 import openpi.policies.libero_policy as libero_policy
 import openpi.shared.download as _download
 import openpi.shared.normalize as _normalize
@@ -463,6 +464,49 @@ class LeRobotDROIDDataConfig(DataConfigFactory):
 
 
 @dataclasses.dataclass(frozen=True)
+class LeRobotFrankaPnPDataConfig(DataConfigFactory):
+    """CVLAB Franka Panda pick-and-place (franka_pnp_big100_* LeRobot v2.1 datasets)."""
+
+    # Actions are absolute joint targets -> convert the 7 joints to deltas w.r.t. the current state
+    # (pi0/pi05 pre-training convention); the gripper command stays absolute.
+    use_delta_joint_actions: bool = True
+
+    @override
+    def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
+        repack_transform = _transforms.Group(
+            inputs=[
+                _transforms.RepackTransform(
+                    {
+                        "observation/exterior_image_1_left": "observation.images.exterior_image_1_left",
+                        "observation/exterior_image_2_left": "observation.images.exterior_image_2_left",
+                        "observation/wrist_image_left": "observation.images.wrist_image_left",
+                        "observation/state": "observation.state",
+                        "actions": "action",
+                        "prompt": "prompt",
+                    }
+                )
+            ]
+        )
+        data_transforms = _transforms.Group(
+            inputs=[franka_pnp_policy.FrankaPnPInputs(model_type=model_config.model_type)],
+            outputs=[franka_pnp_policy.FrankaPnPOutputs()],
+        )
+        if self.use_delta_joint_actions:
+            delta_action_mask = _transforms.make_bool_mask(7, -1)
+            data_transforms = data_transforms.push(
+                inputs=[_transforms.DeltaActions(delta_action_mask)],
+                outputs=[_transforms.AbsoluteActions(delta_action_mask)],
+            )
+        model_transforms = ModelTransformFactory()(model_config)
+        return dataclasses.replace(
+            self.create_base_config(assets_dirs, model_config),
+            repack_transforms=repack_transform,
+            data_transforms=data_transforms,
+            model_transforms=model_transforms,
+        )
+
+
+@dataclasses.dataclass(frozen=True)
 class TrainConfig:
     # Name of the config. Must be unique. Will be used to reference this config.
     name: tyro.conf.Suppress[str]
@@ -824,6 +868,52 @@ _CONFIGS = [
         weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
         num_train_steps=20_000,
         batch_size=64,
+    ),
+    #
+    # CVLAB Franka pick-and-place (shelf) fine-tuning configs.
+    #
+    TrainConfig(
+        # LoRA fine-tune of pi05_base on franka_pnp_big100_base (100 demos, 10 fps, 1 s action chunks).
+        name="pi05_franka_pnp_lora",
+        model=pi0_config.Pi0Config(
+            pi05=True,
+            action_horizon=10,
+            paligemma_variant="gemma_2b_lora",
+            action_expert_variant="gemma_300m_lora",
+        ),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_big100_base",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        batch_size=32,
+        num_train_steps=20_000,
+        save_interval=2_500,
+        keep_period=2_500,
+        num_workers=16,
+        ema_decay=None,
+        freeze_filter=pi0_config.Pi0Config(
+            pi05=True,
+            action_horizon=10,
+            paligemma_variant="gemma_2b_lora",
+            action_expert_variant="gemma_300m_lora",
+        ).get_freeze_filter(),
+    ),
+    TrainConfig(
+        # Full fine-tune of pi05_base on franka_pnp_big100_base (needs FSDP over several GPUs).
+        name="pi05_franka_pnp",
+        model=pi0_config.Pi0Config(pi05=True, action_horizon=10),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_big100_base",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        batch_size=32,
+        num_train_steps=20_000,
+        save_interval=2_500,
+        keep_period=2_500,
+        num_workers=16,
+        fsdp_devices=8,
     ),
     #
     # Fine-tuning DROID configs.
