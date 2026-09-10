@@ -909,6 +909,15 @@ _CONFIGS = [
         ),
         weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
         batch_size=32,
+        # LR schedule / EMA follow the verified CVLAB pi05_cvlab recipe (decay over the full 20k steps, EMA 0.999).
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=2.5e-5,
+            decay_steps=20_000,
+            decay_lr=2.5e-6,
+        ),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
+        ema_decay=0.999,
         num_train_steps=20_000,
         save_interval=2_500,
         keep_period=2_500,
