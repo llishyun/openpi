@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=pi05_franka_pnp
-#SBATCH --partition=CHANGE_ME              # 48GB+ GPU partition: check `sinfo -o "%P %G %N %l"`
+#SBATCH --partition=A6000,RTX6000ADA,L40S   # 48 GB x8 per node, 3.8 TB local SSD, 512 GB RAM. Faster: A100-80GB / H200 (may need a QoS, e.g. -q hpgpu)
 #SBATCH --gres=gpu:4                       # pi05 full FT @ batch 32: 4x48GB is enough (fsdp over all GPUs)
 #SBATCH --cpus-per-task=16                 # config num_workers=16
 #SBATCH --mem=160G
