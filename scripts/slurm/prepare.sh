@@ -10,6 +10,10 @@ export HF_LEROBOT_HOME=${HF_LEROBOT_HOME:-$HOME/.cache/huggingface/lerobot}
 
 echo "== 1/4 python env (uv sync)"
 command -v uv >/dev/null || { curl -LsSf https://astral.sh/uv/install.sh | sh; export PATH="$HOME/.local/bin:$PATH"; }
+# Use uv's own CPython build (ships Python.h): the cluster's system python has no dev headers and
+# evdev (pulled in via lerobot -> pynput) is built from source.
+export UV_PYTHON_PREFERENCE=only-managed
+uv python install 3.11
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 
 echo "== 2/4 pi05_base weights -> ~/.cache/openpi (≈11 GB)"
