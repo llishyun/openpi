@@ -23,6 +23,7 @@
 #              params+assets for every completed step, train_state only for the latest (needed to resume)
 #   Re-submitting with the same EXP_NAME copies the latest step back to local SSD and resumes.
 # Env knobs: CONFIG, PERSIST_ROOT (default ~/openpi_runs), SYNC_MIN (default 20), WANDB=1.
+#   Queue the same run on several partitions; whichever starts first cancels the other pending copies.
 
 set -uo pipefail
 
@@ -54,6 +55,14 @@ export XLA_PYTHON_CLIENT_MEM_FRACTION=0.9
 export HF_LEROBOT_HOME=${HF_LEROBOT_HOME:-$HOME/.cache/huggingface/lerobot}
 export HF_HUB_OFFLINE=1                    # dataset + pi05_base were fetched by prepare.sh
 PYTHON="$PWD/.venv/bin/python"             # created by prepare.sh (uv sync); no conda/docker needed
+
+# Race guard: the same run is often queued on several partitions; the first one to start wins.
+# Cancel the *pending* siblings (same user + job name); never touch running ones. Use a different
+# --job-name / -J when you really want two runs at once.
+if command -v squeue >/dev/null; then
+    SIBLINGS=$(squeue -u "$USER" -h -n "$SLURM_JOB_NAME" -t PENDING -o %i | grep -vx "$SLURM_JOB_ID" || true)
+    if [ -n "$SIBLINGS" ]; then echo "[$(date +%T)] cancelling queued siblings: $(echo $SIBLINGS)"; scancel $SIBLINGS; fi
+fi
 
 GPU_COUNT=$(nvidia-smi -L | wc -l)
 if (( 32 % GPU_COUNT != 0 )); then echo "batch 32 not divisible by GPU_COUNT=${GPU_COUNT}"; exit 1; fi
