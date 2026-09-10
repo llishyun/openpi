@@ -52,6 +52,7 @@ SLURM_DIR="$LOCAL_JOB_BASE/slurm"
 mkdir -p "$(dirname "$LOCAL_DIR")" "$PERSIST_DIR" "$LOG_DIR" "$SLURM_DIR"   # NOT $LOCAL_DIR itself: openpi refuses a pre-existing ckpt dir
 
 export XLA_PYTHON_CLIENT_MEM_FRACTION=0.9
+export PYTHONUNBUFFERED=1                  # "Step N: loss=..." is printed to stdout; without this it only appears at exit
 export HF_LEROBOT_HOME=${HF_LEROBOT_HOME:-$HOME/.cache/huggingface/lerobot}
 export HF_HUB_OFFLINE=1                    # dataset + pi05_base were fetched by prepare.sh
 PYTHON="$PWD/.venv/bin/python"             # created by prepare.sh (uv sync); no conda/docker needed
