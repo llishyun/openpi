@@ -48,7 +48,7 @@ LOCAL_DIR="$LOCAL_CKPT_BASE/$CONFIG/$EXP_NAME"
 PERSIST_DIR="$PERSIST_ROOT/$CONFIG/$EXP_NAME"
 LOG_DIR="$LOCAL_JOB_BASE/logs"
 SLURM_DIR="$LOCAL_JOB_BASE/slurm"
-mkdir -p "$LOCAL_DIR" "$PERSIST_DIR" "$LOG_DIR" "$SLURM_DIR"
+mkdir -p "$(dirname "$LOCAL_DIR")" "$PERSIST_DIR" "$LOG_DIR" "$SLURM_DIR"   # NOT $LOCAL_DIR itself: openpi refuses a pre-existing ckpt dir
 
 export XLA_PYTHON_CLIENT_MEM_FRACTION=0.9
 export HF_LEROBOT_HOME=${HF_LEROBOT_HOME:-$HOME/.cache/huggingface/lerobot}
@@ -69,10 +69,12 @@ MODE_FLAG=""
 LATEST=$(completed_steps "$PERSIST_DIR" | tail -1)
 if [ -n "$LATEST" ] && [ -d "$PERSIST_DIR/$LATEST/train_state" ]; then
     echo "[$(date +%T)] resuming from $PERSIST_DIR/$LATEST"
+    mkdir -p "$LOCAL_DIR"
     rsync -a "$PERSIST_DIR/$LATEST" "$LOCAL_DIR/"
     cp -n "$PERSIST_DIR"/wandb_id.txt "$LOCAL_DIR/" 2>/dev/null || true
     MODE_FLAG="--resume"
 fi
+if [ -z "$MODE_FLAG" ] && [ -d "$LOCAL_DIR" ]; then MODE_FLAG="--overwrite"; fi   # leftover on the per-job SSD (nothing worth keeping)
 WANDB_FLAG="--no-wandb-enabled"; [ "${WANDB:-0}" = "1" ] && WANDB_FLAG="--wandb-enabled"
 
 ########################################
