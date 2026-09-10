@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=pi05_franka_pnp
 #SBATCH --partition=A100-80GB                # n[51-59,76-80]: 8x A100-80GB SXM4 (NVLink), 3.8 TB /local-data, 2 TB RAM
-##SBATCH --qos=hpgpu                          # uncomment (or pass -q hpgpu) if the A100 partition rejects the job
-# 48 GB alternative:  sbatch -p A6000,RTX6000ADA,L40S --gres=gpu:4 scripts/slurm/train.sbatch <exp>
+#SBATCH --qos=hpgpu                          # A100-80GB allows only hpgpu/add_hpgpu/test (not normal)
+# 48 GB alternative (normal QoS):  sbatch -p A6000,RTX6000ADA,L40S -q normal --gres=gpu:4 scripts/slurm/train.sbatch <exp>
 #SBATCH --gres=gpu:2                         # 2x80 GB is enough for pi05 full FT @ batch 32 (fsdp over all GPUs); gpu:4 is faster
 #SBATCH --cpus-per-task=16                 # config num_workers=16
 #SBATCH --mem=160G
