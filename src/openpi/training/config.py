@@ -924,6 +924,32 @@ _CONFIGS = [
         num_workers=16,
         fsdp_devices=8,
     ),
+    TrainConfig(
+        # Full fine-tune of pi05_base on franka_pnp_cells450_base: big shelf, 9 cells x 50 floor-uniform can
+        # positions (450 demos, 10 fps, 1 s chunks), exterior camera F (dish visible while placing), home-referenced
+        # IK branch rule. Same recipe as pi05_franka_pnp (verified pi05_cvlab LR/EMA).
+        name="pi05_franka_pnp_cells450",
+        model=pi0_config.Pi0Config(pi05=True, action_horizon=10),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_cells450_base",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        batch_size=32,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=2.5e-5,
+            decay_steps=20_000,
+            decay_lr=2.5e-6,
+        ),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
+        ema_decay=0.999,
+        num_train_steps=20_000,
+        save_interval=2_500,
+        keep_period=2_500,
+        num_workers=16,
+        fsdp_devices=8,
+    ),
     #
     # Fine-tuning DROID configs.
     #

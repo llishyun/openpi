@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=pi05_franka_pnp
+#SBATCH --job-name=pi05_franka_pnp_cells450
 #SBATCH --partition=A100-80GB                # n[51-59,76-80]: 8x A100-80GB SXM4 (NVLink), 3.8 TB /local-data, 2 TB RAM
 #SBATCH --qos=hpgpu                          # A100-80GB allows only hpgpu/add_hpgpu/test (not normal)
 # 48 GB alternative (normal QoS):  sbatch -p A6000,RTX6000ADA,L40S -q normal --gres=gpu:4 scripts/slurm/train.sbatch <exp>
@@ -38,8 +38,8 @@ if [ -z "${LOCAL_JOB_BASE:-}" ]; then echo "LOCAL_JOB_BASE not set"; exit 1; fi
 # 2. paths / args
 ########################################
 cd "${SLURM_SUBMIT_DIR:-$(dirname "$0")/../..}"
-CONFIG=${CONFIG:-pi05_franka_pnp}
-EXP_NAME=${1:-base100_full}; shift || true
+CONFIG=${CONFIG:-pi05_franka_pnp_cells450}     # older big100 run: CONFIG=pi05_franka_pnp
+EXP_NAME=${1:-cells450_full}; shift || true
 EXTRA_ARGS=("$@")
 PERSIST_ROOT=${PERSIST_ROOT:-$HOME/openpi_runs}
 SYNC_MIN=${SYNC_MIN:-20}
