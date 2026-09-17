@@ -951,6 +951,32 @@ _CONFIGS = [
         fsdp_devices=8,
     ),
     TrainConfig(
+        # Full fine-tune of pi05_base on franka_pnp_center5_base: 50 demos whose can positions are uniform random inside
+        # a 5x5 cm box at the big-shelf interior centre (LIBERO-style narrow initial-state distribution), same camera F,
+        # planner and start pose as cells450. Recipe identical to pi05_franka_pnp_cells450 (augmentation ON, own norm stats).
+        name="pi05_franka_pnp_center5",
+        model=pi0_config.Pi0Config(pi05=True, action_horizon=10),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_center5_base",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        batch_size=32,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=2.5e-5,
+            decay_steps=20_000,
+            decay_lr=2.5e-6,
+        ),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
+        ema_decay=0.999,
+        num_train_steps=20_000,
+        save_interval=2_500,
+        keep_period=2_500,
+        num_workers=16,
+        fsdp_devices=8,
+    ),
+    TrainConfig(
         # Overfit-1 "true memorisation" run (plan 2026-09-17): ONE cells450 demo (base_big_r101_c00, 323 frames),
         # EXACT cells450 recipe (batch 32, warmup 1k, peak 2.5e-5, cosine 20k, EMA 0.999, 20k steps) with the only
         # deviation being image augmentation OFF (so the model can memorise the exact frames). Norm stats are the
