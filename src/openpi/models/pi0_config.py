@@ -29,6 +29,9 @@ class Pi0Config(_model.BaseModelConfig):
     # - the state input is part of the discrete language tokens rather than a continuous input that is part of the suffix
     # - the action expert uses adaRMSNorm to inject the flow matching timestep
     pi05: bool = False
+    # Training-time image augmentation (random crop/rotate/color jitter in model.preprocess_observation).
+    # False = the model sees the exact dataset frames (overfit / memorisation diagnostics).
+    augment_images: bool = True
     # This config option is not used directly by the model, but it is read by the ModelTransformFactory.
     discrete_state_input: bool = None  # type: ignore
 

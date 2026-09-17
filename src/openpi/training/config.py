@@ -950,6 +950,60 @@ _CONFIGS = [
         num_workers=16,
         fsdp_devices=8,
     ),
+    TrainConfig(
+        # Overfit-1 "true memorisation" run (plan 2026-09-17): ONE cells450 demo (base_big_r101_c00, 323 frames),
+        # EXACT cells450 recipe (batch 32, warmup 1k, peak 2.5e-5, cosine 20k, EMA 0.999, 20k steps) with the only
+        # deviation being image augmentation OFF (so the model can memorise the exact frames). Norm stats are the
+        # cells450 ones (a single episode gives degenerate quantiles), read straight from the git-tracked asset dir.
+        # Memorisation gauge: mean-of-N prediction error on the training frames vs the sampling-noise floor (~0.004 rad).
+        name="pi05_franka_pnp_overfit1_full",
+        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, augment_images=False),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_overfit1",
+            assets=AssetsConfig(assets_dir="./assets/pi05_franka_pnp_cells450", asset_id="lithyeon/franka_pnp_cells450_base"),
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        batch_size=32,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=2.5e-5,
+            decay_steps=20_000,
+            decay_lr=2.5e-6,
+        ),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
+        ema_decay=0.999,
+        num_train_steps=20_000,
+        save_interval=2_500,
+        keep_period=2_500,
+        num_workers=16,
+        fsdp_devices=8,
+    ),
+    TrainConfig(
+        # Overfitting diagnostic: ONE cells450 demo (base_big_r101_c00). Same recipe otherwise; norm stats are
+        # copied from the cells450 asset (a single episode gives degenerate quantiles). Local 8x3090 run.
+        name="pi05_franka_pnp_overfit1",
+        model=pi0_config.Pi0Config(pi05=True, action_horizon=10),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_overfit1",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        batch_size=16,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=200,
+            peak_lr=2.5e-5,
+            decay_steps=3_000,
+            decay_lr=2.5e-6,
+        ),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
+        ema_decay=0.999,
+        num_train_steps=3_000,
+        save_interval=1_000,
+        keep_period=1_000,
+        num_workers=4,
+        fsdp_devices=8,
+    ),
     #
     # Fine-tuning DROID configs.
     #
