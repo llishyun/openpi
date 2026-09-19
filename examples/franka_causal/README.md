@@ -27,13 +27,13 @@ GIT_LFS_SKIP_SMUDGE=1 uv sync --frozen
 ```
 
 For an existing checkout, use `git pull --ff-only` on `franka_pnp` instead.
-Transfer `franka_pnp_overfit1_causal.tar.gz` separately to the cluster; it is
-prepared locally in `openpi/data/` and is deliberately not committed to Git.
+The single-demo archive is included in Git at
+`data/franka_pnp_overfit1_causal.tar.gz` (about 29 MB); no separate transfer is needed.
 The installer verifies every file against `dataset_sha256.json`, rejects
 unexpected members, and refuses to overwrite an existing dataset.
 
 ```bash
-.venv/bin/python scripts/install_franka_causal_data.py /path/to/franka_pnp_overfit1_causal.tar.gz
+.venv/bin/python scripts/install_franka_causal_data.py data/franka_pnp_overfit1_causal.tar.gz
 .venv/bin/python -c "from openpi.shared import download; print(download.maybe_download('gs://openpi-assets/checkpoints/pi05_base/params'))"
 ```
 

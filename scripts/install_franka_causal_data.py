@@ -1,4 +1,4 @@
-"""Install the separately transferred one-demo bundle, verifying every file."""
+"""Install the bundled one-demo archive, verifying every file."""
 
 import argparse
 import hashlib
