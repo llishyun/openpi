@@ -193,6 +193,11 @@ def train_step(
 
 def main(config: _config.TrainConfig):
     init_logging()
+    for step in config.inference_save_steps:
+        if not (0 < step < config.num_train_steps) or (
+            step % config.save_interval != 0 and step != config.num_train_steps - 1
+        ):
+            raise ValueError(f"Inference export step {step} must be a saved checkpoint within this run.")
     logging.info(f"Running on: {platform.node()}")
 
     if config.batch_size % jax.device_count() != 0:
@@ -271,6 +276,8 @@ def main(config: _config.TrainConfig):
 
         if (step % config.save_interval == 0 and step > start_step) or step == config.num_train_steps - 1:
             _checkpoints.save_state(checkpoint_manager, train_state, data_loader, step)
+            if step in config.inference_save_steps:
+                _checkpoints.export_inference_checkpoint(checkpoint_manager, step)
 
     logging.info("Waiting for checkpoint manager to finish")
     checkpoint_manager.wait_until_finished()

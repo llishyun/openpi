@@ -4,6 +4,8 @@ import asyncio
 import concurrent.futures as futures
 import dataclasses
 import logging
+import pathlib
+import shutil
 from typing import Protocol
 
 from etils import epath
@@ -84,6 +86,29 @@ def save_state(
         "params": {"params": params},
     }
     checkpoint_manager.save(step, items)
+
+
+def export_inference_checkpoint(checkpoint_manager: ocp.CheckpointManager, step: int) -> pathlib.Path:
+    """Copy a completed checkpoint's serving items before retention can remove it."""
+    checkpoint_manager.wait_until_finished()
+    run = pathlib.Path(str(checkpoint_manager.directory))
+    source = run / str(step)
+    destination = run.parent / f"{run.name}_inference" / str(step)
+    if destination.exists():
+        raise FileExistsError(f"Inference export already exists: {destination}")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_name(f".{step}.tmp")
+    # A stale temporary export is evidence of an interrupted copy; preserve it for inspection.
+    temporary.mkdir()
+    try:
+        for item in ("params", "assets"):
+            shutil.copytree(source / item, temporary / item)
+        temporary.rename(destination)
+    except BaseException:
+        shutil.rmtree(temporary)
+        raise
+    logging.info("Exported inference checkpoint to %s", destination)
+    return destination
 
 
 def restore_state(

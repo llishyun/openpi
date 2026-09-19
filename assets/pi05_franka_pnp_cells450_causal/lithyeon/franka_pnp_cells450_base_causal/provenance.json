@@ -1,0 +1,10 @@
+{
+  "source_episodes": 450,
+  "source_frames": 157856,
+  "action_horizon": 10,
+  "state_timing": "pre_action",
+  "arm_action_representation": "target minus current pre-action state",
+  "gripper": "absolute",
+  "terminal_padding": "repeat final action",
+  "method": "openpi RunningStats over all frames"
+}

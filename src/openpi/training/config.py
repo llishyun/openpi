@@ -560,6 +560,8 @@ class TrainConfig:
     save_interval: int = 1000
     # If set, any existing checkpoints matching step % keep_period == 0 will not be deleted.
     keep_period: int | None = 5000
+    # Export params/assets separately at selected checkpoint steps, without optimizer state.
+    inference_save_steps: tuple[int, ...] = ()
 
     # If true, will overwrite the checkpoint directory if it already exists.
     overwrite: bool = False
@@ -1174,6 +1176,26 @@ _CONFIGS = [
     *roboarena_config.get_roboarena_configs(),
     *polaris_config.get_polaris_configs(),
 ]
+
+# Causal-state counterpart of the original overfit run; keep old configs and
+# checkpoint assets intact so prior results remain reproducible.
+_CONFIGS.append(
+    dataclasses.replace(
+        next(config for config in _CONFIGS if config.name == "pi05_franka_pnp_overfit1_full"),
+        name="pi05_franka_pnp_overfit1_causal",
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_overfit1_causal",
+            assets=AssetsConfig(
+                assets_dir="./assets/pi05_franka_pnp_cells450_causal",
+                asset_id="lithyeon/franka_pnp_cells450_base_causal",
+            ),
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        fsdp_devices=8,
+        keep_period=None,
+        inference_save_steps=(5_000, 10_000, 19_999),
+    )
+)
 
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
     raise ValueError("Config names must be unique.")

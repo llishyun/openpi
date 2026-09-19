@@ -1,0 +1,17 @@
+{
+  "data/chunk-000/episode_000000.parquet": "a2f8d7c00286925a730a702e873ff360206799b0a38aa3910a182d401921a8fc",
+  "initial_state.hdf5": "009530a7e712b07a4b905b0297071adfd37f3ae86dab6e95d968f5a03f4aacd8",
+  "meta/collection.json": "06f54fc224063e072c519d6c19560edc2e9c68b39c15dd3a622f8f48c37358e3",
+  "meta/episodes.jsonl": "0a773f038ced0c30c8c620d85d7e8904647308b76397eaff681f7d7ba23804e3",
+  "meta/episodes_stats.jsonl": "c7ff366d6ba76e4f1f1e790b1e79a22eab1f6d266771a9870e2eafb4e49e9827",
+  "meta/info.json": "a6ec1ebd5642a10a89ea9e82c5e3ab2e2c4b09a11e41c2b22fe0655f02e8a37c",
+  "meta/modality.json": "a0b90232f28aa6ccef4f3d1cadd87fff08e14f37a99a55de88c51644f0f88feb",
+  "meta/scenes.jsonl": "abcd391be9d7a14c36c4fc0c6404c96d3127885f40e517459db3d826132fba43",
+  "meta/stats.json": "b063098aafa32547a5a4660a78dbb844218e6a3db12a7f2d7a1919e363c744fb",
+  "meta/tasks.jsonl": "43088e0feef2272ee11b07ce61d8f09fb4b5ef1262fb323f1831f59acf8f5630",
+  "scenes/base_big_r101_c00/layout.yaml": "c7db7578214a9b1b61a47c5c9b347324855f5b98a411af7dbd776e31436181d5",
+  "scenes/base_big_r101_c00/plan_c003.yaml": "2e8250cff714f8c453b0c9e2d9cf547db3e8cb7a51fab4f61990f5f10b863353",
+  "videos/chunk-000/observation.images.exterior_image_1_left/episode_000000.mp4": "3d4e27a5c5e138f0f728f365a80717c9c2d81fcc97b301258ce88b4dffefae31",
+  "videos/chunk-000/observation.images.exterior_image_2_left/episode_000000.mp4": "0d1faefc73bae849b8cd44ea2bdedc32cf937280d8cc4ce711a249590f95bdaa",
+  "videos/chunk-000/observation.images.wrist_image_left/episode_000000.mp4": "2a46438fb3810f3c2af716d63624d8f5a379ff22591558fd8adada79ab3ace32"
+}

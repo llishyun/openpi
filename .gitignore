@@ -3,6 +3,7 @@ assets/
 checkpoints/
 data/
 wandb/
+diagnostics/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
