@@ -988,7 +988,7 @@ _CONFIGS = [
         model=pi0_config.Pi0Config(pi05=True, action_horizon=10, augment_images=False),
         data=LeRobotFrankaPnPDataConfig(
             repo_id="lithyeon/franka_pnp_overfit1_fix3",
-            assets=AssetsConfig(assets_dir="./assets/pi05_franka_pnp_cells450", asset_id="lithyeon/franka_pnp_cells450_base"),
+            # norm stats computed from this single demo itself (user request 2026-09-19), see assets/pi05_franka_pnp_overfit1_fix3/
             base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
         ),
         weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
