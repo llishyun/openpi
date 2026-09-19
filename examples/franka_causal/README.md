@@ -44,6 +44,52 @@ access; the submitted training job uses the prepared local data.
 
 ## Allocation and smoke test
 
+### Queue alternatives; train only the first eligible job
+
+To try four/eight GPUs across eligible partitions with an eight-hour limit:
+
+```bash
+export CHECKPOINT_BASE_DIR="$HOME/openpi_runs"
+export EXP_NAME=overfit1_causal_race
+.venv/bin/python scripts/slurm/causal_race.py submit --replace-pending-job 969068
+```
+
+Omit `--replace-pending-job` if there is no old job to replace. Use a fresh
+experiment name per submission group. Defaults are four candidates:
+
+- A100-80GB / hpgpu / 8 GPUs
+- A100-80GB / hpgpu / 4 GPUs
+- A6000,RTX6000ADA,L40S / normal / 8 GPUs (one eligible partition, not multiple nodes)
+- A6000,RTX6000ADA,L40S / normal / 4 GPUs
+
+Rejected submissions (e.g. unavailable QoS) are reported and skipped. You can
+override candidates with repeated `--candidate partition/qos/4-or-8` options.
+All accepted jobs are held until their exact IDs have been recorded on shared
+storage. If replacing an old job, it is cancelled only if still pending; if
+it has started, the new candidates are cancelled instead. Then holds are released.
+The first job to pass preflight atomically creates a permanent winner marker
+and cancels only other IDs from this group. Simultaneous losers exit without
+training even if cancellation is delayed. This elects the first preflight-ready
+job, not the first to complete a training step; an eventual OOM/failure will
+not automatically restart a cancelled alternative.
+
+The shared directory `$CHECKPOINT_BASE_DIR/.causal_races/$EXP_NAME` contains
+`jobs.json` and `winner.json`. It must support atomic exclusive file creation.
+Do not delete the winner marker to restart a race. Resume the winning experiment
+as a single job with its recorded GPU count, e.g. for a four-GPU A100 winner:
+
+```bash
+GPU_COUNT=4 RESUME=1 EXP_NAME=overfit1_causal_race \
+  sbatch --gres=gpu:4 --time=08:00:00 scripts/slurm/franka_causal.sbatch
+```
+
+GPU_COUNT controls FSDP and preflight together; global batch remains 32.
+The race submission client runs on the login node, not through sbatch.
+See [Slurm held jobs](https://slurm.schedmd.com/sbatch.html#OPT_hold) and
+[job release](https://slurm.schedmd.com/scontrol.html).
+
+### Submit a single allocation
+
 The default is **one node, eight A100 80GB GPUs, one Python process**, 16 CPUs,
 160 GiB RAM. The existing GSAI scripts use `hpgpu` QoS for `A100-80GB`; verify
 your association, partition time limits and storage quota before submission.

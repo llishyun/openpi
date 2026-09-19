@@ -1,4 +1,4 @@
-"""Preflight for the fixed eight-GPU causal experiment; does not train."""
+"""Preflight for the four/eight-GPU causal experiment; does not train."""
 
 import dataclasses
 import json
@@ -22,7 +22,10 @@ def main():
         cfg,
         exp_name=os.environ["EXP_NAME"],
         checkpoint_base_dir=os.environ["CHECKPOINT_BASE_DIR"],
+        fsdp_devices=int(os.environ.get("GPU_COUNT", "8")),
     )
+    if cfg.fsdp_devices not in (4, 8):
+        raise SystemExit("GPU_COUNT must be 4 or 8.")
     if os.environ.get("SMOKE_TEST") == "1":
         cfg = dataclasses.replace(cfg, num_train_steps=2, save_interval=1, inference_save_steps=(1,))
     if cfg.keep_period is not None:
