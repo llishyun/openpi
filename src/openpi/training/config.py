@@ -979,6 +979,34 @@ _CONFIGS = [
         fsdp_devices=8,
     ),
     TrainConfig(
+        # center5 v2 (2026-09-20): the SAME 50 can positions as center5_base, re-recorded with the datagen fixes (pre-step state
+        # alignment, first-frame fix, 1 s post-release tail, close hold 4 s + 2 s post-grasp settle cap). Own norm stats.
+        # Original comment: 50 demos whose can positions are uniform random inside
+        # a 5x5 cm box at the big-shelf interior centre (LIBERO-style narrow initial-state distribution), same camera F,
+        # planner and start pose as cells450. Recipe identical to pi05_franka_pnp_cells450 (augmentation ON, own norm stats).
+        name="pi05_franka_pnp_center5_v2",
+        model=pi0_config.Pi0Config(pi05=True, action_horizon=10),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_center5_v2",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        batch_size=32,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=2.5e-5,
+            decay_steps=20_000,
+            decay_lr=2.5e-6,
+        ),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
+        ema_decay=0.999,
+        num_train_steps=20_000,
+        save_interval=2_500,
+        keep_period=2_500,
+        num_workers=16,
+        fsdp_devices=8,
+    ),
+    TrainConfig(
         # Overfit-1 fix3 (2026-09-19): as overfit1_fix1 PLUS the shortened post-grasp dwell (close hold 4 s, post-grasp settle
         # cap 2 s -> lift at 8.7 s instead of 18 s, still-frames 34 % vs 50 %). Same scene base_big_r101_c00, recorded with the
         # datagen fixes (state = pre-step joint positions aligned with the image, first-frame artifact gone, 1.1 s of
