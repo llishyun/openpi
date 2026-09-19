@@ -979,6 +979,19 @@ _CONFIGS = [
         fsdp_devices=8,
     ),
     TrainConfig(
+        # Overfit-1 fix3 (2026-09-19): as overfit1_fix1 PLUS the shortened post-grasp dwell (close hold 4 s, post-grasp settle
+        # cap 2 s -> lift at 8.7 s instead of 18 s, still-frames 34 % vs 50 %). Same scene base_big_r101_c00, recorded with the
+        # datagen fixes (state = pre-step joint positions aligned with the image, first-frame artifact gone, 1.1 s of
+        # post-release hold/retreat kept). Recipe identical to pi05_franka_pnp_overfit1_full (aug OFF, cells450 recipe +
+        # norm stats) so the only difference vs that run is the data fix. Gauge: mean-of-N error + closed-loop on the scene.
+        name="pi05_franka_pnp_overfit1_fix3",
+        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, augment_images=False),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_overfit1_fix3",
+            assets=AssetsConfig(assets_dir="./assets/pi05_franka_pnp_cells450", asset_id="lithyeon/franka_pnp_cells450_base"),
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+    TrainConfig(
         # Overfit-1 on the RE-RECORDED single demo (2026-09-19): same scene base_big_r101_c00, but recorded with the
         # datagen fixes (state = pre-step joint positions aligned with the image, first-frame artifact gone, 1.1 s of
         # post-release hold/retreat kept). Recipe identical to pi05_franka_pnp_overfit1_full (aug OFF, cells450 recipe +
