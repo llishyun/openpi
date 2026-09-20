@@ -1282,6 +1282,27 @@ _CONFIGS.append(
     )
 )
 
+# All 1291 source frames, 50 Hz actions, one-second horizon. Keep the 10 Hz run intact.
+_CONFIGS.append(
+    dataclasses.replace(
+        next(config for config in _CONFIGS if config.name == "pi05_franka_pnp_overfit1_fix3"),
+        name="pi05_franka_pnp_overfit1_fix3_50hz",
+        model=pi0_config.Pi0Config(pi05=True, action_horizon=50, augment_images=False),
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_overfit1_fix3_50hz",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        keep_period=None,
+        inference_save_steps=(5_000, 10_000, 19_999),
+        policy_metadata={
+            "action_fps": 50,
+            "action_horizon": 50,
+            "dataset": "lithyeon/franka_pnp_overfit1_fix3_50hz",
+            "state_timing": "pre_action",
+        },
+    )
+)
+
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
     raise ValueError("Config names must be unique.")
 _CONFIGS_DICT = {config.name: config for config in _CONFIGS}

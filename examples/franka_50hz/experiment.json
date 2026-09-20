@@ -1,0 +1,24 @@
+{
+  "config": "pi05_franka_pnp_overfit1_fix3_50hz",
+  "dataset": "lithyeon/franka_pnp_overfit1_fix3_50hz",
+  "fps": 50,
+  "frames": 1291,
+  "episodes": 1,
+  "action_horizon": 50,
+  "batch_size": 32,
+  "num_train_steps": 20000,
+  "image_augmentation": false,
+  "ema_decay": 0.999,
+  "norm_sha256": "3f664351b3d92d3866628bd7aec8b1f08a1aedc99b9be4d1f985d7d36f8ad756",
+  "source": {
+    "source_hdf5": "demo_c003_idx116_succ.hdf5",
+    "source_sha256": "19980f8d654922e25f34308e843b4d917eb5da5d4f004cdac446df6ddf8e5875",
+    "frames": 1291,
+    "fps": 50,
+    "gripper_transition_frames": [
+      213,
+      1232
+    ],
+    "state_timing": "initial_state then previous post-step state; all frames retained"
+  }
+}
