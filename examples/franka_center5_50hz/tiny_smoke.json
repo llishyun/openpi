@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "checkpoint_test": null,
+  "tiny": true,
+  "steps": 2,
+  "batch_size": 2,
+  "action_horizon": 50,
+  "devices": [
+    "NVIDIA GeForce RTX 3090"
+  ],
+  "metrics": [
+    {
+      "grad_norm": 1.501100778579712,
+      "loss": 2.043738603591919,
+      "param_norm": 477.80181884765625
+    },
+    {
+      "grad_norm": 1.2812086343765259,
+      "loss": 2.1460158824920654,
+      "param_norm": 477.80181884765625
+    }
+  ],
+  "wall_seconds": 95.08568280690815
+}

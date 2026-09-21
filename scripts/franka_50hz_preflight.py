@@ -13,27 +13,32 @@ from lerobot.common.constants import HF_LEROBOT_HOME
 from openpi.shared import download
 from openpi.training import config
 
-CONFIG = "pi05_franka_pnp_overfit1_fix3_50hz"
+CONFIG = os.environ.get("OPENPI_FRANKA_CONFIG", "pi05_franka_pnp_overfit1_fix3_50hz")
+EXPERIMENTS = {
+    "pi05_franka_pnp_overfit1_fix3_50hz": "franka_50hz",
+    "pi05_franka_pnp_center5_v2_50hz": "franka_center5_50hz",
+}
 PROJECT = Path(__file__).resolve().parents[1]
 
 
 def verify_inputs():
     cfg = config.get_config(CONFIG)
-    manifest = json.loads((PROJECT / "examples/franka_50hz/dataset_sha256.json").read_text())
+    experiment_dir = PROJECT / "examples" / EXPERIMENTS[CONFIG]
+    expected = json.loads((experiment_dir / "experiment.json").read_text())
+    manifest = json.loads((experiment_dir / "dataset_sha256.json").read_text())
     assert len(manifest) >= 15, "Incomplete dataset manifest"
-    assert "reference.hdf5" in manifest, "Missing replay reference"
+    assert any(name.endswith(".hdf5") for name in manifest), "Missing replay reference"
     root = HF_LEROBOT_HOME / cfg.data.repo_id
-    for name, expected in manifest.items():
+    for name, expected_hash in manifest.items():
         path = root / name
-        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
             raise ValueError(f"Dataset file missing or changed: {path}")
     info = json.loads((root / "meta/info.json").read_text())
-    assert (info["fps"], info["total_frames"], info["total_episodes"]) == (50, 1291, 1)
+    assert (info["fps"], info["total_frames"], info["total_episodes"]) == (50, expected["frames"], expected["episodes"])
     norm = cfg.assets_dirs / cfg.data.repo_id / "norm_stats.json"
-    expected = json.loads((PROJECT / "examples/franka_50hz/experiment.json").read_text())
     assert hashlib.sha256(norm.read_bytes()).hexdigest() == expected["norm_sha256"], "Changed norm stats"
     assert cfg.model.action_horizon == 50
-    assert cfg.model.augment_images is False
+    assert cfg.model.augment_images is expected["image_augmentation"]
     assert cfg.policy_metadata["action_fps"] == 50
     assert cfg.policy_metadata["action_horizon"] == 50
     assert cfg.keep_period is None
@@ -85,7 +90,7 @@ def main():
     assert (base / "manifest.ocdbt").is_file(), f"Missing base model arrays: {base}"
     assert tokenizer.is_file(), f"Prepare tokenizer on login node: {tokenizer}"
     cfg.data.create(cfg.assets_dirs, cfg.model)
-    print(f"Preflight PASS: {count} GPUs; 1291 frames @ 50 Hz; run={run}; reserve={required / 2**30:.1f} GiB")
+    print(f"Preflight PASS: {count} GPUs; {CONFIG} @ 50 Hz; run={run}; reserve={required / 2**30:.1f} GiB")
 
 
 if __name__ == "__main__":

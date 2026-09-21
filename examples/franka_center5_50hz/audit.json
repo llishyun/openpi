@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "episodes": 50,
+  "frames": 69898,
+  "fps": 50,
+  "state_action_reference_match": "exact",
+  "norm_recomputation": "exact",
+  "videos_decoded": 150,
+  "video_frames_and_timestamps_checked": 209694,
+  "loader_samples_checked": 550,
+  "episode_boundary_padding": "PASS",
+  "max_action_roundtrip_error": 2.980232283178452e-08,
+  "training_batch_shape": [
+    32,
+    50,
+    32
+  ],
+  "training_batches_checked": 2,
+  "length_range": [
+    1186,
+    1971
+  ]
+}

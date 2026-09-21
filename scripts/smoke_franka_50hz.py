@@ -31,10 +31,11 @@ def main():
     parser.add_argument(
         "--check-checkpoint", action="store_true", help="Also test save/export/restore with the local tiny model"
     )
+    parser.add_argument("--config", default="pi05_franka_pnp_overfit1_fix3_50hz")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     torch.set_num_threads(1)
-    cfg = config.get_config("pi05_franka_pnp_overfit1_fix3_50hz")
+    cfg = config.get_config(args.config)
     cfg = dataclasses.replace(cfg, fsdp_devices=int(os.environ.get("GPU_COUNT", "8")))
     if args.tiny:
         cfg = dataclasses.replace(
