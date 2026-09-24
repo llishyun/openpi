@@ -1324,6 +1324,25 @@ _CONFIGS.append(
     )
 )
 
+# mid10x15: 450 demos (9 cells x 50) in a 10 x 15 cm region at the big-shelf centre, same 2026-09-19 datagen recipe as
+# center5_v2 (close hold 4 s, 2 s post-grasp settle cap, 1 s post-release tail), converted at the native 50 Hz.
+_CONFIGS.append(
+    dataclasses.replace(
+        next(config for config in _CONFIGS if config.name == "pi05_franka_pnp_center5_v2_50hz"),
+        name="pi05_franka_pnp_mid10x15_50hz",
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_mid10x15_50hz",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        policy_metadata={
+            "action_fps": 50,
+            "action_horizon": 50,
+            "dataset": "lithyeon/franka_pnp_mid10x15_50hz",
+            "state_timing": "pre_action",
+        },
+    )
+)
+
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
     raise ValueError("Config names must be unique.")
 _CONFIGS_DICT = {config.name: config for config in _CONFIGS}

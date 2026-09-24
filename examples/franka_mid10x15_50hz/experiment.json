@@ -1,0 +1,14 @@
+{
+  "config": "pi05_franka_pnp_mid10x15_50hz",
+  "dataset": "lithyeon/franka_pnp_mid10x15_50hz",
+  "fps": 50,
+  "frames": 645964,
+  "episodes": 450,
+  "action_horizon": 50,
+  "batch_size": 32,
+  "num_train_steps": 20000,
+  "image_augmentation": true,
+  "norm_sha256": "2bce1214d4d1b7affe80aabf8d5402348f0582c141c2805e376a5182a979e899",
+  "source_suite": "suite_mid10x15",
+  "all_source_frames_retained": true
+}

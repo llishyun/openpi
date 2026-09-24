@@ -1,18 +1,25 @@
-"""Download and verify the private 50-demo dataset using the logged-in HF account."""
+"""Download and verify a 50 Hz Franka dataset (experiment picked by OPENPI_FRANKA_CONFIG) using the logged-in HF account."""
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import tempfile
 
 from huggingface_hub import snapshot_download
 from lerobot.common.constants import HF_LEROBOT_HOME
 
+EXPERIMENTS = {
+    "pi05_franka_pnp_center5_v2_50hz": "franka_center5_50hz",
+    "pi05_franka_pnp_mid10x15_50hz": "franka_mid10x15_50hz",
+}
+
 
 def main():
     project = Path(__file__).resolve().parents[1]
-    experiment = json.loads((project / "examples/franka_center5_50hz/experiment.json").read_text())
-    manifest = json.loads((project / "examples/franka_center5_50hz/dataset_sha256.json").read_text())
+    experiment_dir = project / "examples" / EXPERIMENTS[os.environ.get("OPENPI_FRANKA_CONFIG", "pi05_franka_pnp_center5_v2_50hz")]
+    experiment = json.loads((experiment_dir / "experiment.json").read_text())
+    manifest = json.loads((experiment_dir / "dataset_sha256.json").read_text())
     root = HF_LEROBOT_HOME / experiment["dataset"]
 
     def verify(directory):
@@ -32,7 +39,7 @@ def main():
             )
             verify(staging)
             staging.rename(root)
-    print(f"Verified 50 episodes at 50 Hz: {root}")
+    print(f"Verified {experiment['episodes']} episodes at 50 Hz: {root}")
 
 
 if __name__ == "__main__":

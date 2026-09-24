@@ -17,6 +17,7 @@ CONFIG = os.environ.get("OPENPI_FRANKA_CONFIG", "pi05_franka_pnp_overfit1_fix3_5
 EXPERIMENTS = {
     "pi05_franka_pnp_overfit1_fix3_50hz": "franka_50hz",
     "pi05_franka_pnp_center5_v2_50hz": "franka_center5_50hz",
+    "pi05_franka_pnp_mid10x15_50hz": "franka_mid10x15_50hz",
 }
 PROJECT = Path(__file__).resolve().parents[1]
 
