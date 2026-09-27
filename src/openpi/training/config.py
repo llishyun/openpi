@@ -1343,6 +1343,26 @@ _CONFIGS.append(
     )
 )
 
+# cells450: the earlier 450-demo campaign (9 cells x 50) spread over the big 32 x 48 cm region — one cell of that grid
+# (10.7 x 16 cm) is about the whole mid10x15 patch. Collected 2026-09-11..13, i.e. the NEW camera but the OLD datagen
+# recipe (longer dwells: 35.1 s / 44 % arm-still per demo vs 28.9 s / 32 % for mid10x15). Converted at the native 50 Hz.
+_CONFIGS.append(
+    dataclasses.replace(
+        next(config for config in _CONFIGS if config.name == "pi05_franka_pnp_center5_v2_50hz"),
+        name="pi05_franka_pnp_cells450_50hz",
+        data=LeRobotFrankaPnPDataConfig(
+            repo_id="lithyeon/franka_pnp_cells450_50hz",
+            base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+        ),
+        policy_metadata={
+            "action_fps": 50,
+            "action_horizon": 50,
+            "dataset": "lithyeon/franka_pnp_cells450_50hz",
+            "state_timing": "pre_action",
+        },
+    )
+)
+
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
     raise ValueError("Config names must be unique.")
 _CONFIGS_DICT = {config.name: config for config in _CONFIGS}
