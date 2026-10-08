@@ -1363,6 +1363,29 @@ _CONFIGS.append(
     )
 )
 
+# center2 (2026-10-07/08): 50 demos each in a 2 x 2 cm box (+-1 cm) at the big-shelf centre, shelf / no-shelf pairs
+# with the SAME 50 can positions in the same episode order. ver2 = the center5 v2 datagen recipe reproduced exactly
+# (action noise 0.002, droop compensation, robot gravity on, 5 s / 2 s settle caps, 4 s close hold); ver3 = same
+# path + grasp selection with the 2026-10-06 fixes (no noise, no droop compensation, gravity compensation, no
+# settles, 1.5 s close hold). Recipes in each dataset's meta/collection.json "datagen_recipe". Native 50 Hz.
+for _c2_name in ("center2v2", "center2v2_noshelf", "center2v3", "center2v3_noshelf"):
+    _CONFIGS.append(
+        dataclasses.replace(
+            next(config for config in _CONFIGS if config.name == "pi05_franka_pnp_center5_v2_50hz"),
+            name=f"pi05_franka_pnp_{_c2_name}_50hz",
+            data=LeRobotFrankaPnPDataConfig(
+                repo_id=f"lithyeon/franka_pnp_{_c2_name}_50hz",
+                base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+            ),
+            policy_metadata={
+                "action_fps": 50,
+                "action_horizon": 50,
+                "dataset": f"lithyeon/franka_pnp_{_c2_name}_50hz",
+                "state_timing": "pre_action",
+            },
+        )
+    )
+
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
     raise ValueError("Config names must be unique.")
 _CONFIGS_DICT = {config.name: config for config in _CONFIGS}
