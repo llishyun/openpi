@@ -1386,6 +1386,27 @@ for _c2_name in ("center2v2", "center2v2_noshelf", "center2v3", "center2v3_noshe
         )
     )
 
+# center5 ver3 (2026-10-12): 50 shelf / no-shelf PAIRS (same can position per pair, same episode order) in the
+# center5 5 x 5 cm box, collected with the center2 ver3 recipe (no action noise, no droop compensation, gravity
+# compensation, no settles, 1.5 s close hold). Recipe in each dataset's meta/collection.json "datagen_recipe".
+for _c5_name in ("center5v3", "center5v3_noshelf"):
+    _CONFIGS.append(
+        dataclasses.replace(
+            next(config for config in _CONFIGS if config.name == "pi05_franka_pnp_center5_v2_50hz"),
+            name=f"pi05_franka_pnp_{_c5_name}_50hz",
+            data=LeRobotFrankaPnPDataConfig(
+                repo_id=f"lithyeon/franka_pnp_{_c5_name}_50hz",
+                base_config=DataConfig(prompt_from_task=True, action_sequence_keys=("action",)),
+            ),
+            policy_metadata={
+                "action_fps": 50,
+                "action_horizon": 50,
+                "dataset": f"lithyeon/franka_pnp_{_c5_name}_50hz",
+                "state_timing": "pre_action",
+            },
+        )
+    )
+
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
     raise ValueError("Config names must be unique.")
 _CONFIGS_DICT = {config.name: config for config in _CONFIGS}
